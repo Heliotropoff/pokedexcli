@@ -106,6 +106,12 @@ func commandMapb(config *Config, _ []string) error {
 		if err != nil {
 			return err
 		}
+		rawData, err = json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		config.Cache.Add(callUrl, rawData)
+
 	} else {
 		if err = json.Unmarshal(rawData, &data); err != nil {
 			return err
