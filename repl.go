@@ -22,7 +22,7 @@ var supportedCommands map[string]cliCommand
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(config *Config) error
+	callback    func(config *Config, args []string) error
 }
 
 func cleanInput(text string) []string {
@@ -32,7 +32,7 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func commandExit(config *Config) error {
+func commandExit(config *Config, _ []string) error {
 	_, err := fmt.Println("Closing the Pokedex... Goodbye!")
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func commandExit(config *Config) error {
 	return nil
 }
 
-func commandHelp(config *Config) error {
+func commandHelp(config *Config, _ []string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 
@@ -56,7 +56,7 @@ func commandHelp(config *Config) error {
 
 const baseLocationsURL string = "https://pokeapi.co/api/v2/location-area/"
 
-func commandMap(config *Config) error {
+func commandMap(config *Config, _ []string) error {
 	var callUrl string
 	var data pokeapi.LocationsData
 	var err error
@@ -70,6 +70,11 @@ func commandMap(config *Config) error {
 		if err != nil {
 			return err
 		}
+		rawData, err = json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		config.Cache.Add(callUrl, rawData)
 	} else {
 		if err := json.Unmarshal(rawData, &data); err != nil {
 			return err
@@ -87,7 +92,7 @@ func commandMap(config *Config) error {
 	return nil
 }
 
-func commandMapb(config *Config) error {
+func commandMapb(config *Config, _ []string) error {
 	var callUrl string
 	var data pokeapi.LocationsData
 	var err error
@@ -118,6 +123,33 @@ func commandMapb(config *Config) error {
 	return nil
 }
 
+func commandExplore(config *Config, args []string) error {
+	//TODO: upade with CACHE AND API LOGIC
+	callUrl := baseLocationsURL + args[0]
+	var data pokeapi.ExploredLocationsData
+	var err error
+	if rawData, ok := config.Cache.Get(callUrl); !ok {
+		data, err = pokeapi.ExploreLocations(callUrl)
+		if err != nil {
+			return err
+		}
+		rawData, err = json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		config.Cache.Add(callUrl, rawData)
+	} else {
+		err = json.Unmarshal(rawData, &data)
+		if err != nil {
+			return err
+		}
+	}
+	for idx := range data.PokemonEncounters {
+		fmt.Println(data.PokemonEncounters[idx].Pokemon.Name)
+	}
+	return nil
+}
+
 func init() {
 	supportedCommands = map[string]cliCommand{
 		"exit": {
@@ -139,6 +171,11 @@ func init() {
 			name:        "mapb",
 			description: "Displays the names of previous 20 location areas in the Pokemon world.",
 			callback:    commandMapb,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Lists all pokemon in a given area",
+			callback:    commandExplore,
 		},
 	}
 }
