@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	pokeapi "github.com/Heliotropoff/pokedexcli/internal"
+	"github.com/Heliotropoff/pokedexcli/internal/pokeapi"
 )
 
 type Config struct {
