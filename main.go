@@ -20,7 +20,7 @@ func main() {
 				if !ok {
 					fmt.Println("Unknown command")
 				} else {
-					err := cmd.callback()
+					err := cmd.callback(&config)
 					if err != nil {
 						fmt.Errorf("Error occurred: %w", err)
 					}
