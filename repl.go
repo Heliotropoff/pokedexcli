@@ -1,19 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/Heliotropoff/pokedexcli/internal/cache"
 	"github.com/Heliotropoff/pokedexcli/internal/pokeapi"
 )
 
 type Config struct {
 	Previous string
 	Next     string
+	Cache    *cache.Cache
 }
 
-var config Config = Config{}
+// var config Config = Config{}
 var supportedCommands map[string]cliCommand
 
 type cliCommand struct {
@@ -55,14 +58,22 @@ const baseLocationsURL string = "https://pokeapi.co/api/v2/location-area/"
 
 func commandMap(config *Config) error {
 	var callUrl string
+	var data pokeapi.LocationsData
+	var err error
 	if config.Next == "" {
 		callUrl = baseLocationsURL
 	} else {
 		callUrl = config.Next
 	}
-	data, err := pokeapi.CallLocations(callUrl)
-	if err != nil {
-		return err
+	if rawData, ok := config.Cache.Get(callUrl); !ok {
+		data, err = pokeapi.CallLocations(callUrl)
+		if err != nil {
+			return err
+		}
+	} else {
+		if err := json.Unmarshal(rawData, &data); err != nil {
+			return err
+		}
 	}
 	config.Next = data.Next
 	if data.Previous != nil {
@@ -78,14 +89,22 @@ func commandMap(config *Config) error {
 
 func commandMapb(config *Config) error {
 	var callUrl string
+	var data pokeapi.LocationsData
+	var err error
 	if config.Previous == "" {
 		fmt.Println("you're on the first page")
 	} else {
 		callUrl = config.Previous
 	}
-	data, err := pokeapi.CallLocations(callUrl)
-	if err != nil {
-		return err
+	if rawData, ok := config.Cache.Get(callUrl); !ok {
+		data, err = pokeapi.CallLocations(callUrl)
+		if err != nil {
+			return err
+		}
+	} else {
+		if err = json.Unmarshal(rawData, &data); err != nil {
+			return err
+		}
 	}
 	config.Next = data.Next
 	if data.Previous != nil {
