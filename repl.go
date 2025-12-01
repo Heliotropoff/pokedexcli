@@ -187,6 +187,30 @@ func commandCatch(config *Config, args []string) error {
 	}
 	return nil
 }
+
+func commandInspect(config *Config, args []string) error {
+	name := args[0]
+	data, ok := Pokedex[name]
+	if !ok {
+		fmt.Println("you have not caught that pokemon")
+		return nil
+	}
+	fmt.Printf("Name: %s\nHeight: %d\nWeight: %d\n", data.Name, data.Height, data.Weight)
+	fmt.Println("Stats:")
+	for idx := range data.Stats {
+		name := data.Stats[idx].Stat.Name
+		value := data.Stats[idx].BaseStat
+		fmt.Printf("	-%s: %d\n", name, value)
+	}
+	fmt.Println("Types:")
+	for idx := range data.Types {
+		name := data.Types[idx].Type.Name
+		fmt.Printf("	-%s\n", name)
+	}
+
+	return nil
+}
+
 func init() {
 	supportedCommands = map[string]cliCommand{
 		"exit": {
@@ -218,6 +242,11 @@ func init() {
 			name:        "catch",
 			description: "Try to catch a pokenmon. On success it is added to you Pokedex",
 			callback:    commandCatch,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "Check the Pokedex, if pokemon was caught print it's stats",
+			callback:    commandInspect,
 		},
 	}
 }
