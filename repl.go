@@ -1,8 +1,10 @@
 package main
 
+//DRY it
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
 
@@ -156,6 +158,35 @@ func commandExplore(config *Config, args []string) error {
 	return nil
 }
 
+const basePokemonUrl string = "https://pokeapi.co/api/v2/pokemon/"
+
+var Pokedex map[string]pokeapi.Pokemon
+
+func commandCatch(config *Config, args []string) error {
+	pokeName := args[0]
+	callUrl := basePokemonUrl + pokeName
+	data, err := pokeapi.GetPokemonData(callUrl)
+	if err != nil {
+		return err
+	}
+	basePokeExp := float64(data.BaseExperience)
+	//lowestExp := 36.0   // Sunkern
+	highestExp := 608.0 //they say it's Blissey
+	currentPokemonChallengeLevel := basePokeExp / highestExp
+	easyPokemonChance := 1.0
+	hardPokemonChance := 0.01
+	challengeRange := easyPokemonChance - hardPokemonChance
+	currentPokemonChance := easyPokemonChance - currentPokemonChallengeLevel*challengeRange
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokeName)
+	playersChance := rand.Float64()
+	if playersChance < currentPokemonChance {
+		Pokedex[pokeName] = data
+		fmt.Printf("%s was caught!\n", pokeName)
+	} else {
+		fmt.Printf("%s escaped!\n", pokeName)
+	}
+	return nil
+}
 func init() {
 	supportedCommands = map[string]cliCommand{
 		"exit": {
@@ -182,6 +213,11 @@ func init() {
 			name:        "explore",
 			description: "Lists all pokemon in a given area",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Try to catch a pokenmon. On success it is added to you Pokedex",
+			callback:    commandCatch,
 		},
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Heliotropoff/pokedexcli/internal/cache"
+	"github.com/Heliotropoff/pokedexcli/internal/pokeapi"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 	config := &Config{
 		Cache: cache.NewCache(time.Duration(time.Second * 10)),
 	}
+	Pokedex = map[string]pokeapi.Pokemon{}
 	for {
 		scanner.Scan()
 		new_input := scanner.Text()
