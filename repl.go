@@ -205,9 +205,21 @@ func commandInspect(config *Config, args []string) error {
 	fmt.Println("Types:")
 	for idx := range data.Types {
 		name := data.Types[idx].Type.Name
-		fmt.Printf("	-%s\n", name)
+		fmt.Printf("	- ", name)
 	}
 
+	return nil
+}
+
+func commandPokedex(config *Config, _ []string) error {
+	if len(Pokedex) == 0 {
+		fmt.Println("Your Pokedex is empty!")
+		return nil
+	}
+	fmt.Println("Your Pokedex:")
+	for key, _ := range Pokedex {
+		fmt.Println("	- %s", key)
+	}
 	return nil
 }
 
@@ -247,6 +259,11 @@ func init() {
 			name:        "inspect",
 			description: "Check the Pokedex, if pokemon was caught print it's stats",
 			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Lists all the caught pokemons",
+			callback:    commandPokedex,
 		},
 	}
 }
